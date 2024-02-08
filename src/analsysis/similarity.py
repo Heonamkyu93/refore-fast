@@ -1,26 +1,43 @@
+from fastapi import APIRouter, UploadFile, File, HTTPException
 import cv2
 import numpy as np
-import insightface
-from insightface.app import FaceAnalysis
 import os
+from insightface.app import FaceAnalysis
 
-# 이미지 파일 경로
-file_path = 'E:/dev/fast/refore-inference/src/analsysis/test2.jpeg'
+similarity_router = APIRouter(prefix="/in")
 
-# OpenCV를 사용하여 이미지 읽기
-img = cv2.imread(file_path)
-if img is None:
-    print(f"이미지를 불러오는 데 실패했습니다: {file_path}")
-else:
-    print(f"이미지를 성공적으로 불러왔습니다: {file_path}")
+@similarity_router.post("/upimg")
+async def upload_img(file: UploadFile = File(...)):
+    # 업로드된 파일이 이미지인지 확인
+    if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+        raise HTTPException(status_code=400, detail="이미지 파일만 업로드 가능합니다.")
+    
+    try:
+        # 파일을 임시 디렉토리에 저장
+        contents = await file.read()
+        nparr = np.frombuffer(contents, np.uint8)
+        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-# FaceAnalysis 객체 생성 및 설정
-app = FaceAnalysis(providers=['CPUExecutionProvider'])  # CUDAExecutionProvider가 사용 불가능한 경우
-app.prepare(ctx_id=0, det_size=(640, 640))
+        # FaceAnalysis 객체 생성 및 설정
+        app = FaceAnalysis(providers=['CPUExecutionProvider'])
+        app.prepare(ctx_id=0, det_size=(640, 640))
 
-# 얼굴 인식 및 처리
-faces = app.get(img)
-rimg = cv2.rectangle
+        # 얼굴 인식 및 처리
+        faces = app.get(img)
 
-# 결과 이미지 저장
-cv2.imwrite("./t1_output.jpg", rimg)
+        # 각 얼굴에 대해 사각형을 그립니다.
+        for face in faces:
+            bbox = face['bbox'].astype(int)
+            img = cv2.rectangle(img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 255, 0), 2)
+
+        # 수정된 이미지를 저장합니다.
+        output_path = "t1_output.jpg"
+        cv2.imwrite(output_path, img)
+
+        return {"message": "이미지 처리가 성공적으로 완료되었습니다.", "output_path": output_path}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    finally:
+        await file.close()

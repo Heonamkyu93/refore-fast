@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-
+from analsysis.similarity import similarity_router
+from fastapi.staticfiles import StaticFiles
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="../static"), name="static")
+app.include_router(similarity_router)
+
 
 app.add_middleware(
     CORSMiddleware,
