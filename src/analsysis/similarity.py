@@ -8,29 +8,32 @@ similarity_router = APIRouter(prefix="/in")
 
 @similarity_router.post("/upimg")
 async def upload_img(file: UploadFile = File(...)):
-    # 업로드된 파일이 이미지인지 확인
     if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
         raise HTTPException(status_code=400, detail="이미지 파일만 업로드 가능합니다.")
     
     try:
-        # 파일을 임시 디렉토리에 저장
         contents = await file.read()
         nparr = np.frombuffer(contents, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-        # FaceAnalysis 객체 생성 및 설정
         app = FaceAnalysis(providers=['CPUExecutionProvider'])
         app.prepare(ctx_id=0, det_size=(640, 640))
 
-        # 얼굴 인식 및 처리
         faces = app.get(img)
 
-        # 각 얼굴에 대해 사각형을 그립니다.
+        # 얼굴상 분류 로직을 추가하세요
         for face in faces:
             bbox = face['bbox'].astype(int)
-            img = cv2.rectangle(img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 255, 0), 2)
+            # 예를 들어, 얼굴 크기나 비율에 따라 얼굴상을 분류할 수 있습니다.
+            # 여기서는 분류 로직을 구현하는 대신 얼굴상을 "미정"으로 설정합니다.
+            face_type = "미정"  # 실제 로직으로 대체 필요
 
-        # 수정된 이미지를 저장합니다.
+            # 분류된 얼굴상에 따라 사각형의 색을 변경할 수 있습니다.
+            color = (0, 255, 0) if face_type == "고양이상" else (255, 0, 0) if face_type == "강아지상" else (0, 0, 255)
+            img = cv2.rectangle(img, (bbox[0], bbox[1]), (bbox[2], bbox[3]), color, 2)
+            # 얼굴상 분류 결과를 이미지에 텍스트로 추가할 수도 있습니다.
+            cv2.putText(img, face_type, (bbox[0], bbox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
+
         output_path = "t1_output.jpg"
         cv2.imwrite(output_path, img)
 
