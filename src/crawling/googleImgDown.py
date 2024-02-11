@@ -7,7 +7,7 @@ import urllib.request
 driver = webdriver.Chrome()
 driver.get("https://www.google.co.kr/imghp?hl=ko&tab=wi&authuser=0&ogbl")
 elem = driver.find_element(By.NAME, "q")
-elem.send_keys("고양이상 여자 연예인")  # 검색어 수정
+elem.send_keys("고화질 고양이상 여자 연예인 정면 ")  # 검색어 수정
 elem.send_keys(Keys.RETURN)
 
 SCROLL_PAUSE_TIME = 1
@@ -25,7 +25,7 @@ while True:
 
 images = driver.find_elements(By.CSS_SELECTOR, ".rg_i.Q4LuWd")
 
-max_images = 5  # 최대 다운로드할 이미지 수
+max_images = 10000  # 최대 다운로드할 이미지 수
 
 count = 1
 
