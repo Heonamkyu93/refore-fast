@@ -15,7 +15,7 @@ def createFolder(directory):
         print(f'Error: Creating directory. {directory}')
 
 # 사용자로부터 이미지를 검색할 동물 이름 입력 받기
-input_name = input('이미지를 수집할 동물 이름 입력 >> ')
+input_name = input('이미지를 수집할 사진 입력 >> ')
 driver = webdriver.Chrome()
 
 # 네이버 이미지 탭에 접근
@@ -46,7 +46,7 @@ createFolder(folder_name)
 
 # 이미지 파일 저장
 for idx, src in enumerate(srcs):
-    if idx >= 10:  # 10개의 이미지가 저장되면 반복문을 종료
+    if idx >= 30:  
         break
     try:
         # src가 None이 아니고, 'http'로 시작하는 경우에만 저장
